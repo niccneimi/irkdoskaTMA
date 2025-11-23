@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import PhotoGallery from './PhotoGallery';
+import { useNotification } from '../contexts/NotificationContext';
 import '../styles/form.css';
 
 function AdForm() {
+    const { showNotification } = useNotification();
     const [photos, setPhotos] = useState([]);
     const [formData, setFormData] = useState({
         description: '',
@@ -71,7 +73,7 @@ function AdForm() {
         };
 
         console.log('Отправка объявления:', submitData);
-        alert(`Объявление добавлено отправлено на модерацию`);
+        showNotification('Объявление добавлено и отправлено на модерацию', 'success');
 
         setFormData({
             description: '',
