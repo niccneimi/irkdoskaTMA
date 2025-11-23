@@ -1,0 +1,15 @@
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+TG_BOT_TOKEN = os.getenv("TG_BOT_TOKEN")
+DB_USERNAME = os.getenv("POSTGRES_USER")
+DB_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = os.getenv("DB_PORT")
+DB_NAME = os.getenv("POSTGRES_DB")
+DOMAIN_NAME = os.getenv("DOMAIN_NAME")
+ADMIN_IDS = [718802381, 7978201047]
+
+start_message = "Жмите запустить для старта приложения!"
