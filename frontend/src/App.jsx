@@ -29,7 +29,7 @@ function App() {
 
                 <AdForm />
 
-                <a href="#" className="footer-link">
+                <a href="https://t.me/Horhi_NFT" className="footer-link">
                     Поддержка
                 </a>
             </div>
