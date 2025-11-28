@@ -1,0 +1,69 @@
+package com.irkdoska.irkdoska.service;
+
+import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import com.irkdoska.irkdoska.entity.AdResponse;
+import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
+import com.irkdoska.irkdoska.model.Ad;
+import com.irkdoska.irkdoska.model.User;
+import com.irkdoska.irkdoska.repository.AdRepository;
+import com.irkdoska.irkdoska.repository.UserRepository;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class AdService {
+
+    private final UserRepository userRepository;
+    private final AdRepository adRepository;
+
+    public AdResponse getAllAds(Long telegramId) {
+        return null;
+    }
+
+    public AdResponse createAd(Long telegramId, String description, Double price, String city, String phone, MultipartFile[] photos) {
+        if (description == null || price == null || city == null || phone == null) {
+            throw new IllegalArgumentException("Null argument");
+        }
+
+        if (description.length() > 200) {
+            throw new IllegalArgumentException("Too low argument");
+        }
+
+        if (!isPhoneValid(phone)) {
+            throw new IllegalArgumentException("Invalid phone number");
+        }
+
+        if (photos != null && photos.length > 0) {    
+            for (MultipartFile photo : photos) {
+                // save photo to minIO here
+            }   
+        }
+
+        User user = userRepository.findByTelegramId(telegramId).orElseThrow(() -> {
+            throw new IllegalArgumentException("Wrong telegram id");
+        });
+        
+        Ad ad = new Ad(description, price, city, phone, user);
+        adRepository.save(ad);
+        return AdResponse.builder()
+            .ads(List.of(ad))
+            .build();
+    }
+
+    private boolean isPhoneValid(String phone) {
+        String digits = phone.replaceAll("\\D", "");
+        if (digits.length() == 0) return false;
+        if (digits.charAt(0) == '7' || digits.charAt(0) == '8') {
+            digits = "7" + digits.substring(1);
+        } else {
+            digits = "7" + digits;
+        }
+        if (digits.length() > 11) {
+            digits = digits.substring(0, 11);
+        }
+        return digits.length() == 11 && digits.startsWith("7");
+    }
+}
