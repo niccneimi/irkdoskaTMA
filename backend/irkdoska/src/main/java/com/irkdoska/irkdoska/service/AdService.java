@@ -76,6 +76,10 @@ public class AdService {
         ad.setModerationStatus(status);
         adRepository.save(ad);
         log.info("Ad {} moderation status changed to {}", adId, status);
+            
+        if (status == ModerationStatus.APPROVED) {
+            telegramBotService.publishAdToChannel(ad);
+        }
     }
 
     private boolean isPhoneValid(String phone) {

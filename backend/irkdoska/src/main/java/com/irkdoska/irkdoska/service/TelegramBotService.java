@@ -27,6 +27,9 @@ public class TelegramBotService {
     @Value("${TG_BOT_TOKEN}")
     private String botToken;
 
+    @Value("${CHANNEL_ID}")
+    private String channelId;
+
     private static final Set<Long> ADMIN_IDS = Set.of(718802381L, 7978201047L);
     private static final String TELEGRAM_API_URL = "https://api.telegram.org/bot";
 
@@ -199,6 +202,114 @@ public class TelegramBotService {
     private String buildPhotoUrl(String photoPath) {
         return "https://" + domainName + "/api/photos?path=" + 
                java.net.URLEncoder.encode(photoPath, java.nio.charset.StandardCharsets.UTF_8);
+    }
+
+    public void publishAdToChannel(Ad ad) {
+        try {
+            String text = formatAdTextForChannel(ad);
+            List<String> photoUrls = ad.getPhotoUrls();
+            
+            if (photoUrls != null && !photoUrls.isEmpty()) {
+                publishPhotoToChannel(text, photoUrls);
+            } else {
+                publishTextToChannel(text);
+            }
+            log.info("Published ad {} to channel", ad.getId());
+        } catch (Exception e) {
+            log.error("Failed to publish ad to channel, adId={}", ad.getId(), e);
+        }
+    }
+
+    private String formatAdTextForChannel(Ad ad) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(ad.getDescription()).append("\n\n");
+        sb.append("💵Цена: ").append(ad.getPrice()).append("₽\n");
+        sb.append("🏙Город: ").append(ad.getCity()).append("\n");
+        sb.append("📞Номер: ").append(ad.getPhone());
+        return sb.toString();
+    }
+
+    private void publishPhotoToChannel(String caption, List<String> photoPaths) {
+        if (photoPaths.size() == 1) {
+            publishSinglePhotoToChannel(caption, photoPaths.get(0));
+        } else {
+            publishMediaGroupToChannel(caption, photoPaths);
+        }
+    }
+
+    private void publishSinglePhotoToChannel(String caption, String photoPath) {
+        String apiUrl = TELEGRAM_API_URL + botToken + "/sendPhoto";
+        
+        try {
+            String photoUrl = buildPhotoUrl(photoPath);
+            
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("chat_id", channelId);
+            requestBody.put("photo", photoUrl);
+            requestBody.put("caption", caption);
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            
+            restTemplate.postForEntity(apiUrl, request, Map.class);
+            log.info("Published photo to channel");
+        } catch (Exception e) {
+            log.error("Failed to publish photo to channel", e);
+        }
+    }
+
+    private void publishMediaGroupToChannel(String caption, List<String> photoPaths) {
+        String apiUrl = TELEGRAM_API_URL + botToken + "/sendMediaGroup";
+        
+        try {
+            List<Map<String, Object>> media = new ArrayList<>();
+            
+            for (int i = 0; i < photoPaths.size(); i++) {
+                String photoUrl = buildPhotoUrl(photoPaths.get(i));
+                Map<String, Object> photoItem = new HashMap<>();
+                photoItem.put("type", "photo");
+                photoItem.put("media", photoUrl);
+                
+                if (i == photoPaths.size() - 1) {
+                    photoItem.put("caption", caption);
+                }
+                
+                media.add(photoItem);
+            }
+            
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("chat_id", channelId);
+            requestBody.put("media", media);
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            
+            restTemplate.postForEntity(apiUrl, request, Map.class);
+            log.info("Published {} photos to channel", photoPaths.size());
+        } catch (Exception e) {
+            log.error("Failed to publish media group to channel", e);
+        }
+    }
+
+    private void publishTextToChannel(String text) {
+        String apiUrl = TELEGRAM_API_URL + botToken + "/sendMessage";
+        
+        try {
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("chat_id", channelId);
+            requestBody.put("text", text);
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            
+            restTemplate.postForEntity(apiUrl, request, Map.class);
+            log.info("Published text to channel");
+        } catch (Exception e) {
+            log.error("Failed to publish text to channel", e);
+        }
     }
 }
 
