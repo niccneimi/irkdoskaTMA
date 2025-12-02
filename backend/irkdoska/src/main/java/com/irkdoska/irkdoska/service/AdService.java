@@ -29,7 +29,7 @@ public class AdService {
                 .build();
     }
 
-    public AdResponse createAd(Long telegramId, String description, Double price, String city, String phone, MultipartFile[] photos) {
+    public AdResponse createAd(Long telegramId, String description, Double price, String city, String phone, MultipartFile[] photos, Boolean isPaid) {
         if (description == null || price == null || city == null || phone == null) {
             throw new IllegalArgumentException("Null argument");
         }
@@ -45,8 +45,16 @@ public class AdService {
         User user = userRepository.findByTelegramId(telegramId).orElseThrow(() -> {
             throw new IllegalArgumentException("Wrong telegram id");
         });
+
+        if (isPaid != null && isPaid) {
+            if (user.getPaidAdsBalance() == null || user.getPaidAdsBalance() <= 0) {
+                throw new IllegalArgumentException("Недостаточно платных объявлений. Купите тариф в магазине.");
+            }
+            user.setPaidAdsBalance(user.getPaidAdsBalance() - 1);
+            userRepository.save(user);
+        }
         
-        Ad ad = new Ad(description, price, city, phone, user);
+        Ad ad = new Ad(description, price, city, phone, user, isPaid != null ? isPaid : false);
         adRepository.save(ad);
         
         if (photos != null && photos.length > 0) {

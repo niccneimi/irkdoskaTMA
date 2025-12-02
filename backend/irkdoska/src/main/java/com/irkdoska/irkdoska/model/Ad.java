@@ -52,6 +52,9 @@ public class Ad {
     @Column(name = "moderation_status", nullable = false)
     private ModerationStatus moderationStatus = ModerationStatus.PENDING;
 
+    @Column(name = "is_paid", nullable = false)
+    private Boolean isPaid = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
@@ -67,5 +70,16 @@ public class Ad {
         this.phone = phone;
         this.user = user;
         this.moderationStatus = ModerationStatus.PENDING;
+        this.isPaid = false;
+    }
+
+    public Ad(String description, Double price, String city, String phone, User user, Boolean isPaid) {
+        this.description = description;
+        this.price = price;
+        this.city = city;
+        this.phone = phone;
+        this.user = user;
+        this.moderationStatus = ModerationStatus.PENDING;
+        this.isPaid = isPaid;
     }
 }

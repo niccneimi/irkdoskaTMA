@@ -8,4 +8,5 @@ public class AdRequest {
     private Double price;
     private String city;
     private String phone;
+    private Boolean isPaid;
 }

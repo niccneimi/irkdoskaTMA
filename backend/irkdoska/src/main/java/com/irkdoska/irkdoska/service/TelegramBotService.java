@@ -47,6 +47,9 @@ public class TelegramBotService {
 
     private String formatAdText(Ad ad) {
         StringBuilder sb = new StringBuilder();
+        if (ad.getIsPaid() != null && ad.getIsPaid()) {
+            sb.append("💰 ПЛАТНОЕ ОБЪЯВЛЕНИЕ\n\n");
+        }
         sb.append(ad.getDescription()).append("\n\n");
         sb.append("💵Цена: ").append(ad.getPrice()).append("₽\n");
         sb.append("🏙Город: ").append(ad.getCity()).append("\n");

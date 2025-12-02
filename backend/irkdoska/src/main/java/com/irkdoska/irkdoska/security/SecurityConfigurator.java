@@ -45,6 +45,7 @@ public class SecurityConfigurator {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/api/photos").permitAll()
                 .requestMatchers("/api/moderation/bot/**").permitAll()
+                .requestMatchers("/api/shop/packages").permitAll()
                 .requestMatchers("/api/**").fullyAuthenticated()
                 .anyRequest().permitAll()
             )

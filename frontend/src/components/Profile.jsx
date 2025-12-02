@@ -4,10 +4,14 @@ import { retrieveRawInitData } from '@telegram-apps/sdk';
 import '../styles/profile.css';
 
 function Profile() {
+    const [activeSection, setActiveSection] = useState('history');
     const [ads, setAds] = useState([]);
     const [selectedAd, setSelectedAd] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [balance, setBalance] = useState(0);
+    const [packages, setPackages] = useState([]);
+    const [isLoadingShop, setIsLoadingShop] = useState(false);
 
     useEffect(() => {
         const loadAds = async () => {
@@ -34,7 +38,56 @@ function Profile() {
         };
 
         loadAds();
+        loadBalance();
+        loadPackages();
     }, []);
+
+    const loadBalance = async () => {
+        try {
+            const dataRaw = retrieveRawInitData();
+            const response = await axios.get('/api/shop/balance', {
+                headers: {
+                    'Authorization': 'tma ' + dataRaw
+                }
+            });
+            setBalance(response.data?.balance || 0);
+        } catch (e) {
+            console.error('Failed to load balance', e);
+        }
+    };
+
+    const loadPackages = async () => {
+        try {
+            const response = await axios.get('/api/shop/packages');
+            setPackages(response.data || []);
+        } catch (e) {
+            console.error('Failed to load packages', e);
+        }
+    };
+
+    const purchasePackage = async (packageId) => {
+        setIsLoadingShop(true);
+        try {
+            const dataRaw = retrieveRawInitData();
+            const response = await axios.post(`/api/shop/purchase/${packageId}`, {}, {
+                headers: {
+                    'Authorization': 'tma ' + dataRaw
+                }
+            });
+            if (response.data.success) {
+                setBalance(response.data.balance);
+                alert('Тариф успешно куплен!');
+            } else {
+                alert('Ошибка: ' + (response.data.error || 'Не удалось купить тариф'));
+            }
+        } catch (e) {
+            console.error('Failed to purchase package', e);
+            const errorMsg = e.response?.data?.error || 'Не удалось купить тариф';
+            alert('Ошибка: ' + errorMsg);
+        } finally {
+            setIsLoadingShop(false);
+        }
+    };
 
     const formatDate = (value) => {
         if (!value) return '';
@@ -79,9 +132,29 @@ function Profile() {
     };
 
     return (
-        <div className="profile-layout">
-            <div className="profile-list">
-                <h2 className="profile-title">История объявлений</h2>
+        <div className="profile-container">
+            <div className="profile-tabs">
+                <div
+                    className={`profile-tab ${activeSection === 'history' ? 'active' : ''}`}
+                    onClick={() => setActiveSection('history')}
+                >
+                    История
+                </div>
+                <div
+                    className={`profile-tab ${activeSection === 'shop' ? 'active' : ''}`}
+                    onClick={() => setActiveSection('shop')}
+                >
+                    Магазин
+                </div>
+            </div>
+
+            {activeSection === 'history' && (
+                <div className="profile-layout">
+                    <div className="profile-list">
+                        <h2 className="profile-title">История объявлений</h2>
+                        <div className="profile-balance-info">
+                            Баланс платных объявлений: <strong>{balance}</strong>
+                        </div>
 
                 {isLoading && <div className="profile-info">Загрузка...</div>}
                 {error && <div className="profile-error">{error}</div>}
@@ -177,6 +250,36 @@ function Profile() {
                                 })}
                             </div>
                         </div>
+                    )}
+                </div>
+            )}
+            </div>
+            )}
+
+            {activeSection === 'shop' && (
+                <div className="shop-section">
+                    <h2 className="profile-title">Магазин платных объявлений</h2>
+                    <div className="profile-balance-info">
+                        Баланс платных объявлений: <strong>{balance}</strong>
+                    </div>
+                    <div className="packages-grid">
+                        {packages.map((pkg) => (
+                            <div key={pkg.id} className="package-card">
+                                <div className="package-name">{pkg.name}</div>
+                                <div className="package-count">{pkg.adsCount} объявлений</div>
+                                <div className="package-price">{pkg.price} ₽</div>
+                                <button
+                                    className="package-buy-button"
+                                    onClick={() => purchasePackage(pkg.id)}
+                                    disabled={isLoadingShop}
+                                >
+                                    {isLoadingShop ? 'Обработка...' : 'Купить'}
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                    {packages.length === 0 && !isLoadingShop && (
+                        <div className="profile-info">Тарифы временно недоступны</div>
                     )}
                 </div>
             )}

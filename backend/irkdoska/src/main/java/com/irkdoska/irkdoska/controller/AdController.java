@@ -35,6 +35,18 @@ public class AdController {
             @AuthenticationPrincipal TmaUserPrincipal principal,
             @RequestPart("adRequest") AdRequest adRequest,
             @RequestPart(value = "photos", required = false) MultipartFile[] photos) {
-        return ResponseEntity.ok(adService.createAd(principal.getTelegramId(), adRequest.getDescription(), adRequest.getPrice(), adRequest.getCity(), adRequest.getPhone(), photos));
+        try {
+            return ResponseEntity.ok(adService.createAd(
+                    principal.getTelegramId(), 
+                    adRequest.getDescription(), 
+                    adRequest.getPrice(), 
+                    adRequest.getCity(), 
+                    adRequest.getPhone(), 
+                    photos,
+                    adRequest.getIsPaid()));
+        } catch (IllegalArgumentException e) {
+            log.error("Error creating ad: {}", e.getMessage());
+            throw e;
+        }
     }
 }

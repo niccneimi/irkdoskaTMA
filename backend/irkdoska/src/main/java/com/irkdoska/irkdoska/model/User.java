@@ -34,6 +34,9 @@ public class User {
     @Column(name = "username", nullable = false)
     private String username;
 
+    @Column(name = "paid_ads_balance", nullable = false)
+    private Integer paidAdsBalance = 0;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;

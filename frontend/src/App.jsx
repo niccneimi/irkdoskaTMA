@@ -47,7 +47,7 @@ function App() {
                     </div>
                 </div>
 
-                {activeTab === 'profile' ? <Profile /> : <AdForm />}
+                {activeTab === 'profile' ? <Profile /> : <AdForm isPaid={activeTab === 'paid'} />}
 
                 <a href="https://t.me/Horhi_NFT" className="footer-link">
                     Поддержка

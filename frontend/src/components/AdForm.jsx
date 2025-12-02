@@ -1,21 +1,43 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PhotoGallery from './PhotoGallery';
 import { useNotification } from '../contexts/NotificationContext';
 import { retrieveRawInitData } from '@telegram-apps/sdk';
 import axios from 'axios';
 import '../styles/form.css';
 
-function AdForm() {
+function AdForm({ isPaid = false }) {
     const { showNotification, showError } = useNotification();
     const [photos, setPhotos] = useState([]);
     const [resetPhotosToken, setResetPhotosToken] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
+    const [balance, setBalance] = useState(null);
     const [formData, setFormData] = useState({
         description: '',
         city: '',
         phone: '',
         price: ''
     });
+
+    useEffect(() => {
+        if (isPaid) {
+            loadBalance();
+        }
+    }, [isPaid]);
+
+    const loadBalance = async () => {
+        try {
+            const dataRaw = retrieveRawInitData();
+            const response = await axios.get('/api/shop/balance', {
+                headers: {
+                    'Authorization': 'tma ' + dataRaw
+                }
+            });
+            setBalance(response.data?.balance || 0);
+        } catch (e) {
+            console.error('Failed to load balance', e);
+            setBalance(0);
+        }
+    };
 
     const formatPhone = (value) => {
         let digits = value.replace(/\D/g, '');
@@ -77,7 +99,8 @@ function AdForm() {
             description: formData.description,
             price: parseFloat(formData.price),
             city: formData.city,
-            phone: formData.phone
+            phone: formData.phone,
+            isPaid: isPaid
         };
 
         formDataToSend.append('adRequest', new Blob([JSON.stringify(adRequest)], {
@@ -105,11 +128,33 @@ function AdForm() {
                 });
                 setPhotos([]);
                 setResetPhotosToken(prev => prev + 1);
+                if (isPaid) {
+                    loadBalance();
+                }
                 setIsLoading(false);
             })
             .catch(error => {
                 console.error('Create ad error: ', error);
-                showError('Не удалось создать объявление. Попробуйте еще раз.');
+                let errorMessage = 'Не удалось создать объявление. Попробуйте еще раз.';
+                
+                if (error.response?.data) {
+                    errorMessage = error.response.data.message || 
+                                  error.response.data.error || 
+                                  (typeof error.response.data === 'string' ? error.response.data : errorMessage);
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+
+                if (errorMessage.includes('Недостаточно платных объявлений') || 
+                    errorMessage.includes('баланс') ||
+                    error.response?.status === 402) {
+                    if (isPaid) {
+                        loadBalance();
+                    }
+                    showError('❌ ' + errorMessage + ' Перейдите в магазин и купите тариф.');
+                } else {
+                    showError(errorMessage);
+                }
                 setIsLoading(false);
             });
     }
@@ -122,12 +167,32 @@ function AdForm() {
             return;
         }
 
+        if (isPaid) {
+            if (balance === null) {
+                showError('Загрузка баланса... Пожалуйста, подождите.');
+                return;
+            }
+            if (balance <= 0) {
+                showError('Недостаточно платных объявлений. Перейдите в магазин и купите тариф.');
+                return;
+            }
+        }
+
         const dataRaw = retrieveRawInitData();
         createAd(dataRaw);
     };
 
     return (
         <div className="form-card">
+            {isPaid && balance !== null && (
+                <div className={`balance-info ${balance <= 0 ? 'balance-warning' : ''}`}>
+                    {balance <= 0 ? (
+                        <span>⚠️ У вас нет платных объявлений. Купите тариф в магазине.</span>
+                    ) : (
+                        <span>💰 Доступно платных объявлений: <strong>{balance}</strong></span>
+                    )}
+                </div>
+            )}
             <PhotoGallery maxPhotos={5} onChange={setPhotos} resetToken={resetPhotosToken} />
 
             <form onSubmit={handleSubmit}>
