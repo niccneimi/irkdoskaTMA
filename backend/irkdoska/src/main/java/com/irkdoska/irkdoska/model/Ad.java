@@ -13,6 +13,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +48,10 @@ public class Ad {
     @Column(name = "photo_url")
     private List<String> photoUrls = new ArrayList<>();
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "moderation_status", nullable = false)
+    private ModerationStatus moderationStatus = ModerationStatus.PENDING;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
@@ -60,5 +66,6 @@ public class Ad {
         this.city = city;
         this.phone = phone;
         this.user = user;
+        this.moderationStatus = ModerationStatus.PENDING;
     }
 }

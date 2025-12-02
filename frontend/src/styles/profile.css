@@ -93,10 +93,47 @@
     font-weight: 600;
 }
 
+.profile-ads-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
 .profile-ads-date {
     font-size: 11px;
     color: var(--color-text-secondary);
     white-space: nowrap;
+}
+
+.profile-ads-status {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-approved {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-rejected {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.profile-status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 13px;
 }
 
 .profile-details {

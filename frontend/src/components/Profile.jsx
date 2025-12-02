@@ -52,6 +52,32 @@ function Profile() {
         }
     };
 
+    const getStatusText = (status) => {
+        switch (status) {
+            case 'PENDING':
+                return 'Модерируется';
+            case 'APPROVED':
+                return 'Одобрено';
+            case 'REJECTED':
+                return 'Отклонено';
+            default:
+                return 'Модерируется';
+        }
+    };
+
+    const getStatusClass = (status) => {
+        switch (status) {
+            case 'PENDING':
+                return 'status-pending';
+            case 'APPROVED':
+                return 'status-approved';
+            case 'REJECTED':
+                return 'status-rejected';
+            default:
+                return 'status-pending';
+        }
+    };
+
     return (
         <div className="profile-layout">
             <div className="profile-list">
@@ -86,8 +112,13 @@ function Profile() {
                                     )}
                                 </div>
                             </div>
-                            <div className="profile-ads-date">
-                                {formatDate(ad.createdAt)}
+                            <div className="profile-ads-footer">
+                                <div className={`profile-ads-status ${getStatusClass(ad.moderationStatus)}`}>
+                                    {getStatusText(ad.moderationStatus)}
+                                </div>
+                                <div className="profile-ads-date">
+                                    {formatDate(ad.createdAt)}
+                                </div>
                             </div>
                         </li>
                     ))}
@@ -114,6 +145,12 @@ function Profile() {
                             <span className="label">Цена:</span>
                             <span>
                                 {selectedAd.price != null ? `${selectedAd.price} ₽` : '—'}
+                            </span>
+                        </div>
+                        <div className="profile-details-row">
+                            <span className="label">Статус:</span>
+                            <span className={`profile-status-badge ${getStatusClass(selectedAd.moderationStatus)}`}>
+                                {getStatusText(selectedAd.moderationStatus)}
                             </span>
                         </div>
                         <div className="profile-details-row">

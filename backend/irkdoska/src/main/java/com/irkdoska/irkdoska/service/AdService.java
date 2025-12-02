@@ -8,6 +8,7 @@ import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
 import com.irkdoska.irkdoska.model.Ad;
 import com.irkdoska.irkdoska.model.User;
+import com.irkdoska.irkdoska.model.ModerationStatus;
 import com.irkdoska.irkdoska.repository.AdRepository;
 import com.irkdoska.irkdoska.repository.UserRepository;
 
@@ -19,6 +20,7 @@ public class AdService {
     private final UserRepository userRepository;
     private final AdRepository adRepository;
     private final MinioStorageService minioStorageService;
+    private final TelegramBotService telegramBotService;
 
     public AdResponse getAllAds(Long telegramId) {
         java.util.List<Ad> ads = adRepository.findByUserTelegramIdOrderByCreatedAtDesc(telegramId);
@@ -52,9 +54,20 @@ public class AdService {
             ad.setPhotoUrls(photoUrls);
             adRepository.save(ad);
         }
+        
+        telegramBotService.sendAdForModeration(ad);
+        
         return AdResponse.builder()
             .ads(List.of(ad))
             .build();
+    }
+
+    public void moderateAd(Long adId, ModerationStatus status) {
+        Ad ad = adRepository.findById(adId)
+                .orElseThrow(() -> new IllegalArgumentException("Ad not found"));
+        ad.setModerationStatus(status);
+        adRepository.save(ad);
+        log.info("Ad {} moderation status changed to {}", adId, status);
     }
 
     private boolean isPhoneValid(String phone) {
