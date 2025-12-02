@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import PhotoGallery from './PhotoGallery';
 import { useNotification } from '../contexts/NotificationContext';
+import { retrieveRawInitData } from '@telegram-apps/sdk';
+import axios from 'axios';
 import '../styles/form.css';
 
 function AdForm() {
-    const { showNotification } = useNotification();
+    const { showNotification, showError } = useNotification();
     const [photos, setPhotos] = useState([]);
+    const [resetPhotosToken, setResetPhotosToken] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
         description: '',
         city: '',
@@ -64,29 +68,67 @@ function AdForm() {
         }
     };
 
+    async function createAd(dataRaw) {
+        setIsLoading(true);
+
+        const formDataToSend = new FormData();
+
+        const adRequest = {
+            description: formData.description,
+            price: parseFloat(formData.price),
+            city: formData.city,
+            phone: formData.phone
+        };
+
+        formDataToSend.append('adRequest', new Blob([JSON.stringify(adRequest)], {
+            type: 'application/json'
+        }));
+
+        if (photos && photos.length > 0) {
+            photos.forEach((photo) => {
+                formDataToSend.append('photos', photo);
+            });
+        }
+
+        axios.post('/api/ads', formDataToSend, {
+            headers: {
+                'Authorization': 'tma ' + dataRaw
+            }
+        })
+            .then(response => {
+                showNotification('Объявление добавлено и отправлено на модерацию');
+                setFormData({
+                    description: '',
+                    city: '',
+                    phone: '',
+                    price: ''
+                });
+                setPhotos([]);
+                setResetPhotosToken(prev => prev + 1);
+                setIsLoading(false);
+            })
+            .catch(error => {
+                console.error('Create ad error: ', error);
+                showError('Не удалось создать объявление. Попробуйте еще раз.');
+                setIsLoading(false);
+            });
+    }
+
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        const submitData = {
-            ...formData,
-            photos: photos
-        };
+        if (!formData.description || !formData.price || !formData.city || !formData.phone) {
+            showError('Пожалуйста, заполните все обязательные поля');
+            return;
+        }
 
-        console.log('Отправка объявления:', submitData);
-        showNotification('Объявление добавлено и отправлено на модерацию', 'success');
-
-        setFormData({
-            description: '',
-            city: '',
-            phone: '',
-            price: ''
-        });
-        setPhotos([]);
+        const dataRaw = retrieveRawInitData();
+        createAd(dataRaw);
     };
 
     return (
         <div className="form-card">
-            <PhotoGallery maxPhotos={5} onChange={setPhotos} />
+            <PhotoGallery maxPhotos={5} onChange={setPhotos} resetToken={resetPhotosToken} />
 
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
@@ -156,8 +198,12 @@ function AdForm() {
                     </div>
                 </div>
 
-                <button type="submit" className="submit-button">
-                    Добавить!
+                <button 
+                    type="submit" 
+                    className="submit-button"
+                    disabled={isLoading}
+                >
+                    {isLoading ? 'Отправка...' : 'Добавить!'}
                 </button>
             </form>
         </div>

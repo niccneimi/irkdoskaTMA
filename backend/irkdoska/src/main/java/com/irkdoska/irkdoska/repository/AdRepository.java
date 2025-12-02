@@ -8,4 +8,6 @@ import com.irkdoska.irkdoska.model.Ad;
 @Repository
 public interface AdRepository  extends JpaRepository<Ad, Long>{
 
+    java.util.List<Ad> findByUserTelegramIdOrderByCreatedAtDesc(Long telegramId);
+
 }

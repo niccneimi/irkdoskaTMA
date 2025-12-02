@@ -15,12 +15,16 @@ export function NotificationProvider({ children }) {
         return id;
     };
 
+    const showError = (message, duration = 4000) => {
+        return showNotification(message, 'error', duration);
+    };
+
     const removeNotification = (id) => {
         setNotifications(prev => prev.filter(notif => notif.id !== id));
     };
 
     return (
-        <NotificationContext.Provider value={{ showNotification }}>
+        <NotificationContext.Provider value={{ showNotification, showError }}>
             {children}
             <div className="toast-container">
                 {notifications.map(notif => (

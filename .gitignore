@@ -3,6 +3,8 @@
 
 .venv
 
+backend/irkdoska/src/main/resources/application-secrets.yaml
+
 # Logs
 logs
 *.log

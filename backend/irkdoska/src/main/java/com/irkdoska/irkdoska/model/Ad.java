@@ -11,7 +11,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.CollectionTable;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -38,8 +41,10 @@ public class Ad {
     @Column(name = "phone", nullable = false)
     private String phone;
 
-    // @Column(name = "photo_urls", nullable = false)
-    // private List<String> photoUrls;
+    @ElementCollection
+    @CollectionTable(name = "ads_photo_urls", joinColumns = @JoinColumn(name = "ad_id"))
+    @Column(name = "photo_url")
+    private List<String> photoUrls = new ArrayList<>();
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false)

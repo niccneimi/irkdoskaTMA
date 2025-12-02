@@ -1,11 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AdForm from './components/AdForm';
+import Profile from './components/Profile';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { retrieveRawInitData } from '@telegram-apps/sdk';
 import './styles/variables.css';
 import './styles/global.css';
+import axios from 'axios';
 
 function App() {
     const [activeTab, setActiveTab] = useState('paid');
+
+    useEffect(() => {
+        const dataRaw = retrieveRawInitData();
+        axios.get('/api/login', {
+            headers: {
+                'Authorization': 'tma ' + dataRaw
+            }
+        }).catch(error => {
+            console.error('Login error:', error);
+        });
+    }, []);
 
     return (
         <NotificationProvider>
@@ -24,10 +38,16 @@ function App() {
                         >
                             Платно
                         </div>
+                        <div
+                            className={`tab ${activeTab === 'profile' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('profile')}
+                        >
+                            Профиль
+                        </div>
                     </div>
                 </div>
 
-                <AdForm />
+                {activeTab === 'profile' ? <Profile /> : <AdForm />}
 
                 <a href="https://t.me/Horhi_NFT" className="footer-link">
                     Поддержка

@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import '../styles/gallery.css';
 
-function PhotoGallery({ maxPhotos = 5, onChange }) {
+function PhotoGallery({ maxPhotos = 5, onChange, resetToken }) {
     const [photos, setPhotos] = useState([]);
 
     const handleFileSelect = (e) => {
@@ -12,7 +12,10 @@ function PhotoGallery({ maxPhotos = 5, onChange }) {
         const readers = filesToAdd.map(file => {
             return new Promise((resolve) => {
                 const reader = new FileReader();
-                reader.onload = (e) => resolve(e.target.result);
+                reader.onload = (e) => resolve({
+                    file: file,
+                    preview: e.target.result
+                });
                 reader.readAsDataURL(file);
             });
         });
@@ -21,7 +24,7 @@ function PhotoGallery({ maxPhotos = 5, onChange }) {
             const updatedPhotos = [...photos, ...newPhotos];
             setPhotos(updatedPhotos);
             if (onChange) {
-                onChange(updatedPhotos);
+                onChange(updatedPhotos.map(p => p.file));
             }
         });
 
@@ -32,11 +35,17 @@ function PhotoGallery({ maxPhotos = 5, onChange }) {
         const updatedPhotos = photos.filter((_, i) => i !== index);
         setPhotos(updatedPhotos);
         if (onChange) {
-            onChange(updatedPhotos);
+            onChange(updatedPhotos.map(p => p.file));
         }
     };
 
     const canAddMore = photos.length < maxPhotos;
+
+    useEffect(() => {
+        if (resetToken !== undefined) {
+            setPhotos([]);
+        }
+    }, [resetToken]);
 
     return (
         <div className="photo-upload-section">
@@ -59,7 +68,7 @@ function PhotoGallery({ maxPhotos = 5, onChange }) {
                 <div className="photo-gallery">
                     {photos.map((photo, index) => (
                         <div key={index} className="photo-item">
-                            <img src={photo} alt={`Фото ${index + 1}`} />
+                            <img src={photo.preview} alt={`Фото ${index + 1}`} />
                             <button
                                 type="button"
                                 className="photo-remove"

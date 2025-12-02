@@ -25,13 +25,10 @@ public class MinioStorageService {
     @Value("${minio.bucket}")
     private String bucketName;
 
-    @Value("${minio.public-url}")
-    private String publicUrl;
-
     public List<String> uploadPhotos(Long adId, MultipartFile[] photos) {
-        List<String> urls = new ArrayList<>();
+        List<String> paths = new ArrayList<>();
         if (photos == null || photos.length == 0) {
-            return urls;
+            return paths;
         }
 
         try {
@@ -51,16 +48,13 @@ public class MinioStorageService {
                                     .build()
                     );
                 }
-                String url = publicUrl.endsWith("/")
-                        ? publicUrl + bucketName + "/" + objectName
-                        : publicUrl + "/" + bucketName + "/" + objectName;
-                urls.add(url);
+                paths.add(objectName);
             }
         } catch (Exception e) {
             log.error("Failed to upload photos to MinIO", e);
             throw new RuntimeException("Failed to upload photos", e);
         }
-        return urls;
+        return paths;
     }
 
     private void ensureBucket() throws Exception {

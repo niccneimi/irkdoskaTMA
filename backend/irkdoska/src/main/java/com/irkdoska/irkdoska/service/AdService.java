@@ -21,7 +21,10 @@ public class AdService {
     private final MinioStorageService minioStorageService;
 
     public AdResponse getAllAds(Long telegramId) {
-        return null;
+        java.util.List<Ad> ads = adRepository.findByUserTelegramIdOrderByCreatedAtDesc(telegramId);
+        return AdResponse.builder()
+                .ads(ads)
+                .build();
     }
 
     public AdResponse createAd(Long telegramId, String description, Double price, String city, String phone, MultipartFile[] photos) {
@@ -45,7 +48,9 @@ public class AdService {
         adRepository.save(ad);
         
         if (photos != null && photos.length > 0) {
-            minioStorageService.uploadPhotos(ad.getId(), photos);
+            java.util.List<String> photoUrls = minioStorageService.uploadPhotos(ad.getId(), photos);
+            ad.setPhotoUrls(photoUrls);
+            adRepository.save(ad);
         }
         return AdResponse.builder()
             .ads(List.of(ad))
