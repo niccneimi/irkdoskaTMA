@@ -42,7 +42,6 @@ public class ModerationController {
     public ResponseEntity<Void> approveAdFromBot(
             @PathVariable Long adId,
             @RequestParam Long telegramId) {
-        // Проверяем что это админ
         if (!isAdmin(telegramId)) {
             return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).build();
         }
@@ -55,7 +54,6 @@ public class ModerationController {
     public ResponseEntity<Void> rejectAdFromBot(
             @PathVariable Long adId,
             @RequestParam Long telegramId) {
-        // Проверяем что это админ
         if (!isAdmin(telegramId)) {
             return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).build();
         }
