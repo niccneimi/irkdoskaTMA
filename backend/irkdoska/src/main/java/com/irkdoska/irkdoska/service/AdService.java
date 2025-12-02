@@ -18,6 +18,7 @@ public class AdService {
 
     private final UserRepository userRepository;
     private final AdRepository adRepository;
+    private final MinioStorageService minioStorageService;
 
     public AdResponse getAllAds(Long telegramId) {
         return null;
@@ -36,18 +37,16 @@ public class AdService {
             throw new IllegalArgumentException("Invalid phone number");
         }
 
-        if (photos != null && photos.length > 0) {    
-            for (MultipartFile photo : photos) {
-                // save photo to minIO here
-            }   
-        }
-
         User user = userRepository.findByTelegramId(telegramId).orElseThrow(() -> {
             throw new IllegalArgumentException("Wrong telegram id");
         });
         
         Ad ad = new Ad(description, price, city, phone, user);
         adRepository.save(ad);
+        
+        if (photos != null && photos.length > 0) {
+            minioStorageService.uploadPhotos(ad.getId(), photos);
+        }
         return AdResponse.builder()
             .ads(List.of(ad))
             .build();
