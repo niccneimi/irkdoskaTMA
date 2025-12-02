@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-@RequestMapping("/")
+@RequestMapping("/api/login")
 @RestController
 @RequiredArgsConstructor
 @Slf4j

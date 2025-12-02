@@ -16,6 +16,7 @@ import java.util.List;
 
 import java.time.OffsetDateTime;
 import org.hibernate.annotations.CreationTimestamp;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "users")
@@ -38,6 +39,7 @@ public class User {
     private OffsetDateTime createdAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Ad> ads = new ArrayList<>();
 
     public User(Long telegramId, String username) {

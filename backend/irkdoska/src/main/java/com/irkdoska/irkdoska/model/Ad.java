@@ -38,8 +38,8 @@ public class Ad {
     @Column(name = "phone", nullable = false)
     private String phone;
 
-    @Column(name = "photo_urls", nullable = false)
-    private List<String> photoUrls;
+    // @Column(name = "photo_urls", nullable = false)
+    // private List<String> photoUrls;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false)
