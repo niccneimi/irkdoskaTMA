@@ -49,7 +49,7 @@ function App() {
 
                 {activeTab === 'profile' ? <Profile /> : <AdForm isPaid={activeTab === 'paid'} />}
 
-                <a href="https://t.me/Horhi_NFT" className="footer-link">
+                <a href="https://t.me/mariana_stepa" className="footer-link">
                     Поддержка
                 </a>
             </div>
