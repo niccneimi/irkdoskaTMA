@@ -133,10 +133,50 @@ function Profile() {
                 tg.expand();
             }
             
-            document.body.classList.add('payment-active');
+            if (typeof tg.ready === 'function') {
+                tg.ready();
+            }
+            
+            if (typeof tg.setHeaderColor === 'function') {
+                tg.setHeaderColor('#000000');
+            }
+            
+            if (typeof tg.setBackgroundColor === 'function') {
+                tg.setBackgroundColor('#000000');
+            }
+            
+            const html = document.documentElement;
+            const body = document.body;
+            const root = document.getElementById('root');
+            const container = document.querySelector('.container');
+            
+            const originalHtmlStyle = html.style.cssText;
+            const originalBodyStyle = body.style.cssText;
+            const originalRootStyle = root ? root.style.cssText : '';
+            const originalContainerStyle = container ? container.style.cssText : '';
+            
+            html.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 0 !important; height: 0 !important; overflow: hidden !important; z-index: -999999 !important;';
+            body.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 0 !important; height: 0 !important; overflow: hidden !important; z-index: -999999 !important;';
+            if (root) {
+                root.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; position: fixed !important; z-index: -999999 !important; width: 0 !important; height: 0 !important;';
+            }
+            if (container) {
+                container.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; position: fixed !important; z-index: -999999 !important;';
+            }
+            
+            const restoreStyles = () => {
+                html.style.cssText = originalHtmlStyle;
+                body.style.cssText = originalBodyStyle;
+                if (root) {
+                    root.style.cssText = originalRootStyle;
+                }
+                if (container) {
+                    container.style.cssText = originalContainerStyle;
+                }
+            };
 
             tg.openInvoice(response.data, (status) => {
-                document.body.classList.remove('payment-active');
+                restoreStyles();
                 
                 setIsLoadingShop(false);
                 if (status === 'paid') {
@@ -148,7 +188,23 @@ function Profile() {
                 }
             });
         } catch (e) {
-            document.body.classList.remove('payment-active');
+            const html = document.documentElement;
+            const body = document.body;
+            const root = document.getElementById('root');
+            const container = document.querySelector('.container');
+            
+            if (html && html.style) {
+                html.style.cssText = '';
+            }
+            if (body && body.style) {
+                body.style.cssText = '';
+            }
+            if (root && root.style) {
+                root.style.cssText = '';
+            }
+            if (container && container.style) {
+                container.style.cssText = '';
+            }
             
             setIsLoadingShop(false);
             console.error('Failed to create invoice', e);
