@@ -137,70 +137,43 @@ function Profile() {
                 tg.ready();
             }
             
-            if (typeof tg.setHeaderColor === 'function') {
-                tg.setHeaderColor('#000000');
+            const root = document.getElementById('root');
+            const html = document.documentElement;
+            const body = document.body;
+            
+            const originalRootDisplay = root ? root.style.display : '';
+            const originalHtmlHeight = html.style.height;
+            const originalBodyHeight = body.style.height;
+            const originalHtmlOverflow = html.style.overflow;
+            const originalBodyOverflow = body.style.overflow;
+            
+            if (root) {
+                root.style.display = 'none';
             }
             
-            if (typeof tg.setBackgroundColor === 'function') {
-                tg.setBackgroundColor('#000000');
+            html.style.height = '100vh';
+            html.style.overflow = 'hidden';
+            body.style.height = '100vh';
+            body.style.overflow = 'hidden';
+            
+            if (tg.viewportHeight) {
+                const vh = tg.viewportHeight;
+                html.style.height = vh + 'px';
+                body.style.height = vh + 'px';
             }
             
-            if (typeof tg.enableClosingConfirmation === 'function') {
-                tg.enableClosingConfirmation(false);
-            }
-            
-            const hideAllElements = () => {
-                const allElements = document.querySelectorAll('*');
-                allElements.forEach(el => {
-                    if (el.id !== 'payment-overlay' && el.tagName !== 'SCRIPT' && el.tagName !== 'STYLE') {
-                        const originalDisplay = el.style.display;
-                        const originalVisibility = el.style.visibility;
-                        const originalOpacity = el.style.opacity;
-                        const originalZIndex = el.style.zIndex;
-                        const originalPosition = el.style.position;
-                        
-                        el.dataset.originalDisplay = originalDisplay || '';
-                        el.dataset.originalVisibility = originalVisibility || '';
-                        el.dataset.originalOpacity = originalOpacity || '';
-                        el.dataset.originalZIndex = originalZIndex || '';
-                        el.dataset.originalPosition = originalPosition || '';
-                        
-                        el.style.display = 'none';
-                        el.style.visibility = 'hidden';
-                        el.style.opacity = '0';
-                        el.style.zIndex = '-999999';
-                        el.style.position = 'fixed';
-                    }
-                });
+            const restoreViewport = () => {
+                if (root) {
+                    root.style.display = originalRootDisplay;
+                }
+                html.style.height = originalHtmlHeight;
+                body.style.height = originalBodyHeight;
+                html.style.overflow = originalHtmlOverflow;
+                body.style.overflow = originalBodyOverflow;
             };
-            
-            const restoreAllElements = () => {
-                const allElements = document.querySelectorAll('*');
-                allElements.forEach(el => {
-                    if (el.dataset.originalDisplay !== undefined) {
-                        el.style.display = el.dataset.originalDisplay;
-                        el.style.visibility = el.dataset.originalVisibility;
-                        el.style.opacity = el.dataset.originalOpacity;
-                        el.style.zIndex = el.dataset.originalZIndex;
-                        el.style.position = el.dataset.originalPosition;
-                        
-                        delete el.dataset.originalDisplay;
-                        delete el.dataset.originalVisibility;
-                        delete el.dataset.originalOpacity;
-                        delete el.dataset.originalZIndex;
-                        delete el.dataset.originalPosition;
-                    }
-                });
-            };
-            
-            hideAllElements();
-            
-            setTimeout(() => {
-                hideAllElements();
-            }, 100);
 
             tg.openInvoice(response.data, (status) => {
-                restoreAllElements();
+                restoreViewport();
                 
                 setIsLoadingShop(false);
                 if (status === 'paid') {
@@ -209,25 +182,31 @@ function Profile() {
                 } else if (status === 'failed') {
                     alert('❌ Ошибка при оплате. Попробуйте еще раз.');
                 } else if (status === 'cancelled' || status === 'pending') {
+                    restoreViewport();
                 }
             });
         } catch (e) {
-            const allElements = document.querySelectorAll('*');
-            allElements.forEach(el => {
-                if (el.dataset.originalDisplay !== undefined) {
-                    el.style.display = el.dataset.originalDisplay;
-                    el.style.visibility = el.dataset.originalVisibility;
-                    el.style.opacity = el.dataset.originalOpacity;
-                    el.style.zIndex = el.dataset.originalZIndex;
-                    el.style.position = el.dataset.originalPosition;
-                    
-                    delete el.dataset.originalDisplay;
-                    delete el.dataset.originalVisibility;
-                    delete el.dataset.originalOpacity;
-                    delete el.dataset.originalZIndex;
-                    delete el.dataset.originalPosition;
-                }
-            });
+            const html = document.documentElement;
+            const body = document.body;
+            const root = document.getElementById('root');
+            
+            html.style.height = '';
+            html.style.overflow = '';
+            html.style.position = '';
+            html.style.width = '';
+            html.style.top = '';
+            html.style.left = '';
+            
+            body.style.height = '';
+            body.style.overflow = '';
+            body.style.position = '';
+            body.style.width = '';
+            body.style.margin = '';
+            body.style.padding = '';
+            
+            if (root) {
+                root.style.display = '';
+            }
             
             setIsLoadingShop(false);
             console.error('Failed to create invoice', e);
