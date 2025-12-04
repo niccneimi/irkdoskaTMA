@@ -14,6 +14,21 @@ function Profile() {
     const [isLoadingShop, setIsLoadingShop] = useState(false);
 
     useEffect(() => {
+        const checkTelegramAPI = () => {
+            if (window.Telegram?.WebApp) {
+                console.log('Telegram WebApp API доступен');
+            } else {
+                console.warn('Telegram WebApp API не найден. Убедитесь, что приложение открыто через Telegram.');
+                setTimeout(() => {
+                    if (window.Telegram?.WebApp) {
+                        console.log('Telegram WebApp API загружен');
+                    } else {
+                        console.error('Telegram WebApp API все еще недоступен');
+                    }
+                }, 1000);
+            }
+        };
+
         const loadAds = async () => {
             setIsLoading(true);
             setError(null);
@@ -37,6 +52,7 @@ function Profile() {
             }
         };
 
+        checkTelegramAPI();
         loadAds();
         loadBalance();
         loadPackages();
@@ -67,25 +83,77 @@ function Profile() {
 
     const purchasePackage = async (packageId) => {
         setIsLoadingShop(true);
+
         try {
             const dataRaw = retrieveRawInitData();
-            const response = await axios.post(`/api/shop/purchase/${packageId}`, {}, {
+            const response = await axios.post(`/api/shop/invoice/${packageId}`, {}, {
                 headers: {
-                    'Authorization': 'tma ' + dataRaw
+                    'Authorization': 'tma ' + dataRaw,
+                    'Content-Type': 'application/json'
+                },
+                responseType: 'text'
+            });
+            
+            if (response.data.startsWith('ERROR:')) {
+                alert('Ошибка: ' + response.data.substring(6));
+                setIsLoadingShop(false);
+                return;
+            }
+
+            let tg = window.Telegram?.WebApp;
+            
+            if (!tg) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                tg = window.Telegram?.WebApp;
+            }
+            
+            if (!tg) {
+                setIsLoadingShop(false);
+                console.error('Telegram WebApp API not available', {
+                    windowTelegram: !!window.Telegram,
+                    telegramWebApp: !!window.Telegram?.WebApp,
+                    userAgent: navigator.userAgent
+                });
+                return;
+            }
+
+            if (typeof tg.openInvoice !== 'function') {
+                setIsLoadingShop(false);
+                console.error('openInvoice method not available', {
+                    tg: !!tg,
+                    methods: Object.keys(tg || {}),
+                    openInvoice: typeof tg.openInvoice,
+                    version: tg.version
+                });
+                alert('Метод openInvoice недоступен. Проверьте версию Telegram WebApp API.');
+                return;
+            }
+
+            if (typeof tg.expand === 'function') {
+                tg.expand();
+            }
+            
+            document.body.classList.add('payment-active');
+
+            tg.openInvoice(response.data, (status) => {
+                document.body.classList.remove('payment-active');
+                
+                setIsLoadingShop(false);
+                if (status === 'paid') {
+                    loadBalance();
+                    alert('✅ Платеж успешно выполнен! Баланс обновлен.');
+                } else if (status === 'failed') {
+                    alert('❌ Ошибка при оплате. Попробуйте еще раз.');
+                } else if (status === 'cancelled' || status === 'pending') {
                 }
             });
-            if (response.data.success) {
-                setBalance(response.data.balance);
-                alert('Тариф успешно куплен!');
-            } else {
-                alert('Ошибка: ' + (response.data.error || 'Не удалось купить тариф'));
-            }
         } catch (e) {
-            console.error('Failed to purchase package', e);
-            const errorMsg = e.response?.data?.error || 'Не удалось купить тариф';
-            alert('Ошибка: ' + errorMsg);
-        } finally {
+            document.body.classList.remove('payment-active');
+            
             setIsLoadingShop(false);
+            console.error('Failed to create invoice', e);
+            const errorMsg = e.response?.data || e.message || 'Не удалось создать платеж';
+            alert('Ошибка: ' + errorMsg);
         }
     };
 
@@ -129,6 +197,25 @@ function Profile() {
             default:
                 return 'status-pending';
         }
+    };
+
+    const getAdsCountText = (count) => {
+        const lastDigit = count % 10;
+        const lastTwoDigits = count % 100;
+        
+        if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+            return `${count} объявлений`;
+        }
+        
+        if (lastDigit === 1) {
+            return `${count} объявление`;
+        }
+        
+        if (lastDigit >= 2 && lastDigit <= 4) {
+            return `${count} объявления`;
+        }
+        
+        return `${count} объявлений`;
     };
 
     return (
@@ -230,6 +317,12 @@ function Profile() {
                             <span className="label">Создано:</span>
                             <span>{formatDate(selectedAd.createdAt)}</span>
                         </div>
+                        {selectedAd.rejectionReason && (
+                            <div className="profile-details-row">
+                                <span className="label">Причина отказа:</span>
+                                <span style={{ color: '#ff4444' }}>{selectedAd.rejectionReason}</span>
+                            </div>
+                        )}
                     </div>
 
                     {selectedAd.photoUrls && selectedAd.photoUrls.length > 0 && (
@@ -266,7 +359,7 @@ function Profile() {
                         {packages.map((pkg) => (
                             <div key={pkg.id} className="package-card">
                                 <div className="package-name">{pkg.name}</div>
-                                <div className="package-count">{pkg.adsCount} объявлений</div>
+                                <div className="package-count">{getAdsCountText(pkg.adsCount)}</div>
                                 <div className="package-price">{pkg.price} ₽</div>
                                 <button
                                     className="package-buy-button"

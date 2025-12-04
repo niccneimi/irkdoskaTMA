@@ -34,8 +34,6 @@ public class PaidAdPackageService {
 
         User user = userRepository.findByTelegramId(telegramId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        // Здесь должна быть интеграция с платежной системой
         
         if (user.getPaidAdsBalance() == null) {
             user.setPaidAdsBalance(0);

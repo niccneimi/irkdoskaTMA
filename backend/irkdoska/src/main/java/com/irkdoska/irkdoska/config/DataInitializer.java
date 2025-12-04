@@ -26,7 +26,7 @@ public class DataInitializer implements CommandLineRunner {
                 PaidAdPackage basic = new PaidAdPackage();
                 basic.setName("Базовый");
                 basic.setAdsCount(1);
-                basic.setPrice(100.0);
+                basic.setPrice(200.0);
                 basic.setIsActive(true);
                 packageRepository.saveAndFlush(basic);
                 log.info("Created package: {}", basic.getName());
@@ -34,7 +34,7 @@ public class DataInitializer implements CommandLineRunner {
                 PaidAdPackage standard = new PaidAdPackage();
                 standard.setName("Стандарт");
                 standard.setAdsCount(3);
-                standard.setPrice(250.0);
+                standard.setPrice(500.0);
                 standard.setIsActive(true);
                 packageRepository.saveAndFlush(standard);
                 log.info("Created package: {}", standard.getName());
@@ -42,7 +42,7 @@ public class DataInitializer implements CommandLineRunner {
                 PaidAdPackage premium = new PaidAdPackage();
                 premium.setName("Премиум");
                 premium.setAdsCount(5);
-                premium.setPrice(400.0);
+                premium.setPrice(900.0);
                 premium.setIsActive(true);
                 packageRepository.saveAndFlush(premium);
                 log.info("Created package: {}", premium.getName());

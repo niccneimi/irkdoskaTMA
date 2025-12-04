@@ -10,6 +10,7 @@ DB_HOST = os.getenv("DB_HOST")
 DB_PORT = os.getenv("DB_PORT")
 DB_NAME = os.getenv("POSTGRES_DB")
 DOMAIN_NAME = os.getenv("DOMAIN_NAME")
+PAYMENT_WEBHOOK_SECRET = os.getenv("PAYMENT_WEBHOOK_SECRET", "")
 ADMIN_IDS = [718802381, 7978201047]
 
 start_message = "Жмите запустить для старта приложения!"

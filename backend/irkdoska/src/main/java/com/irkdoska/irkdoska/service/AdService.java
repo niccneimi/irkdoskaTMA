@@ -54,7 +54,8 @@ public class AdService {
             userRepository.save(user);
         }
         
-        Ad ad = new Ad(description, price, city, phone, user, isPaid != null ? isPaid : false);
+        String normalizedPhone = normalizePhone(phone);
+        Ad ad = new Ad(description, price, city, normalizedPhone, user, isPaid != null ? isPaid : false);
         adRepository.save(ad);
         
         if (photos != null && photos.length > 0) {
@@ -71,14 +72,24 @@ public class AdService {
     }
 
     public void moderateAd(Long adId, ModerationStatus status) {
+        moderateAd(adId, status, null);
+    }
+
+    public void moderateAd(Long adId, ModerationStatus status, String rejectionReason) {
         Ad ad = adRepository.findById(adId)
                 .orElseThrow(() -> new IllegalArgumentException("Ad not found"));
         ad.setModerationStatus(status);
+        if (rejectionReason != null) {
+            ad.setRejectionReason(rejectionReason);
+        }
         adRepository.save(ad);
         log.info("Ad {} moderation status changed to {}", adId, status);
             
         if (status == ModerationStatus.APPROVED) {
             telegramBotService.publishAdToChannel(ad);
+        } else if (status == ModerationStatus.REJECTED && rejectionReason != null) {
+            Long userTelegramId = ad.getUser().getTelegramId();
+            telegramBotService.sendNotificationToUser(userTelegramId, rejectionReason);
         }
     }
 
@@ -94,5 +105,12 @@ public class AdService {
             digits = digits.substring(0, 11);
         }
         return digits.length() == 11 && digits.startsWith("7");
+    }
+
+    private String normalizePhone(String phone) {
+        if (phone == null) {
+            return null;
+        }
+        return phone.replaceAll("\\s+", "");
     }
 }

@@ -5,6 +5,7 @@ import com.irkdoska.irkdoska.model.User;
 import com.irkdoska.irkdoska.repository.UserRepository;
 import com.irkdoska.irkdoska.security.TmaUserPrincipal;
 import com.irkdoska.irkdoska.service.PaidAdPackageService;
+import com.irkdoska.irkdoska.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import java.util.Map;
 public class ShopController {
 
     private final PaidAdPackageService packageService;
+    private final PaymentService paymentService;
     private final UserRepository userRepository;
 
     @GetMapping("/packages")
@@ -39,6 +41,21 @@ public class ShopController {
         Map<String, Object> response = new HashMap<>();
         response.put("balance", user.getPaidAdsBalance() != null ? user.getPaidAdsBalance() : 0);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/invoice/{packageId}")
+    public ResponseEntity<String> createInvoiceLink(
+            @AuthenticationPrincipal TmaUserPrincipal principal,
+            @PathVariable Long packageId) {
+        try {
+            String invoiceLink = paymentService.createInvoiceLink(principal.getTelegramId(), packageId);
+            return ResponseEntity.ok(invoiceLink);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("ERROR: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Error creating invoice link", e);
+            return ResponseEntity.status(500).body("ERROR: Ошибка при создании платежа");
+        }
     }
 
     @PostMapping("/purchase/{packageId}")

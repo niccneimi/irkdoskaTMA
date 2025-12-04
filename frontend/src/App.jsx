@@ -8,7 +8,7 @@ import './styles/global.css';
 import axios from 'axios';
 
 function App() {
-    const [activeTab, setActiveTab] = useState('paid');
+    const [activeTab, setActiveTab] = useState('free');
 
     useEffect(() => {
         const dataRaw = retrieveRawInitData();

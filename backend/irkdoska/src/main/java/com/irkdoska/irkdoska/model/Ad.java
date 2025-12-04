@@ -55,6 +55,9 @@ public class Ad {
     @Column(name = "is_paid", nullable = false)
     private Boolean isPaid = false;
 
+    @Column(name = "rejection_reason", length = 500)
+    private String rejectionReason;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;

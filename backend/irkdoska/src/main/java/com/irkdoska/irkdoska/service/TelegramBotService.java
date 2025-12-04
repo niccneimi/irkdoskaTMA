@@ -39,9 +39,9 @@ public class TelegramBotService {
             List<String> photoUrls = ad.getPhotoUrls();
             
             if (photoUrls != null && !photoUrls.isEmpty()) {
-                sendPhotoWithCaption(ad.getId(), text, photoUrls);
+                sendPhotoWithCaption(ad.getId(), text, photoUrls, ad.getIsPaid() != null && ad.getIsPaid());
             } else {
-                sendTextMessage(text, ad.getId());
+                sendTextMessage(text, ad.getId(), ad.getIsPaid() != null && ad.getIsPaid());
             }
         } catch (Exception e) {
             log.error("Failed to send ad for moderation, adId={}", ad.getId(), e);
@@ -54,21 +54,22 @@ public class TelegramBotService {
             sb.append("💰 ПЛАТНОЕ ОБЪЯВЛЕНИЕ\n\n");
         }
         sb.append(ad.getDescription()).append("\n\n");
-        sb.append("💵Цена: ").append(ad.getPrice()).append("₽\n");
-        sb.append("🏙Город: ").append(ad.getCity()).append("\n");
-        sb.append("📞Номер: ").append(ad.getPhone());
+        sb.append("💵 Цена: ").append(ad.getPrice()).append("₽\n");
+        sb.append("🏙 Город: ").append(ad.getCity()).append("\n");
+        String phone = ad.getPhone() != null ? ad.getPhone().replaceAll("\\s+", "") : "";
+        sb.append("📞 Номер: ").append(phone);
         return sb.toString();
     }
 
-    private void sendPhotoWithCaption(Long adId, String caption, List<String> photoPaths) {
+    private void sendPhotoWithCaption(Long adId, String caption, List<String> photoPaths, Boolean isPaid) {
         if (photoPaths.size() == 1) {
-            sendSinglePhoto(adId, caption, photoPaths.get(0));
+            sendSinglePhoto(adId, caption, photoPaths.get(0), isPaid);
         } else {
-            sendMediaGroup(adId, caption, photoPaths);
+            sendMediaGroup(adId, caption, photoPaths, isPaid);
         }
     }
 
-    private void sendSinglePhoto(Long adId, String caption, String photoPath) {
+    private void sendSinglePhoto(Long adId, String caption, String photoPath, Boolean isPaid) {
         String apiUrl = TELEGRAM_API_URL + botToken + "/sendPhoto";
         
         for (Long adminId : ADMIN_IDS) {
@@ -80,7 +81,7 @@ public class TelegramBotService {
                 requestBody.put("photo", photoUrl);
                 requestBody.put("caption", caption);
                 
-                Map<String, Object> keyboard = createInlineKeyboard(adId);
+                Map<String, Object> keyboard = createInlineKeyboard(adId, isPaid);
                 requestBody.put("reply_markup", keyboard);
                 
                 HttpHeaders headers = new HttpHeaders();
@@ -95,7 +96,7 @@ public class TelegramBotService {
         }
     }
 
-    private void sendMediaGroup(Long adId, String caption, List<String> photoPaths) {
+    private void sendMediaGroup(Long adId, String caption, List<String> photoPaths, Boolean isPaid) {
         String apiUrl = TELEGRAM_API_URL + botToken + "/sendMediaGroup";
         
         for (Long adminId : ADMIN_IDS) {
@@ -125,7 +126,7 @@ public class TelegramBotService {
                 
                 restTemplate.postForEntity(apiUrl, request, Map.class);
                 
-                sendButtonsAfterMediaGroup(adminId, adId);
+                sendButtonsAfterMediaGroup(adminId, adId, isPaid);
                 
                 log.info("Sent ad {} with {} photos for moderation to admin {}", adId, photoPaths.size(), adminId);
             } catch (Exception e) {
@@ -134,7 +135,7 @@ public class TelegramBotService {
         }
     }
 
-    private void sendButtonsAfterMediaGroup(Long adminId, Long adId) {
+    private void sendButtonsAfterMediaGroup(Long adminId, Long adId, Boolean isPaid) {
         try {
             String apiUrl = TELEGRAM_API_URL + botToken + "/sendMessage";
             
@@ -142,7 +143,7 @@ public class TelegramBotService {
             requestBody.put("chat_id", adminId);
             requestBody.put("text", "Модерация объявления:");
             
-            Map<String, Object> keyboard = createInlineKeyboard(adId);
+            Map<String, Object> keyboard = createInlineKeyboard(adId, isPaid);
             requestBody.put("reply_markup", keyboard);
             
             HttpHeaders headers = new HttpHeaders();
@@ -155,7 +156,7 @@ public class TelegramBotService {
         }
     }
 
-    private Map<String, Object> createInlineKeyboard(Long adId) {
+    private Map<String, Object> createInlineKeyboard(Long adId, Boolean isPaid) {
         Map<String, Object> keyboard = new HashMap<>();
         List<List<Map<String, String>>> inlineKeyboard = new ArrayList<>();
         
@@ -171,11 +172,21 @@ public class TelegramBotService {
         row1.add(rejectBtn);
         
         inlineKeyboard.add(row1);
+        
+        if (isPaid == null || !isPaid) {
+            List<Map<String, String>> row2 = new ArrayList<>();
+            Map<String, String> commercialBtn = new HashMap<>();
+            commercialBtn.put("text", "💳 Коммерция");
+            commercialBtn.put("callback_data", "commercial_" + adId);
+            row2.add(commercialBtn);
+            inlineKeyboard.add(row2);
+        }
+        
         keyboard.put("inline_keyboard", inlineKeyboard);
         return keyboard;
     }
 
-    private void sendTextMessage(String text, Long adId) {
+    private void sendTextMessage(String text, Long adId, Boolean isPaid) {
         String apiUrl = TELEGRAM_API_URL + botToken + "/sendMessage";
         
         for (Long adminId : ADMIN_IDS) {
@@ -184,7 +195,7 @@ public class TelegramBotService {
                 requestBody.put("chat_id", adminId);
                 requestBody.put("text", text);
                 
-                Map<String, Object> keyboard = createInlineKeyboard(adId);
+                Map<String, Object> keyboard = createInlineKeyboard(adId, isPaid);
                 requestBody.put("reply_markup", keyboard);
                 
                 HttpHeaders headers = new HttpHeaders();
@@ -223,9 +234,12 @@ public class TelegramBotService {
     private String formatAdTextForChannel(Ad ad) {
         StringBuilder sb = new StringBuilder();
         sb.append(ad.getDescription()).append("\n\n");
-        sb.append("💵Цена: ").append(ad.getPrice()).append("₽\n");
-        sb.append("🏙Город: ").append(ad.getCity()).append("\n");
-        sb.append("📞Номер: ").append(ad.getPhone());
+        sb.append("💵 Цена: ").append(ad.getPrice()).append("₽\n");
+        sb.append("🏙 Город: ").append(ad.getCity()).append("\n");
+        String phone = ad.getPhone() != null ? ad.getPhone().replaceAll("\\s+", "") : "";
+        sb.append("📞 Номер: ").append(phone);
+        sb.append("\n\n");
+        sb.append("🌆 <a href=\"https://t.me/+7L49gd6yCMZjYjEy\">Кладовая 38</a> 🛍️ | <a href=\"https://t.me/irkdoska_bot\">Подать объявление</a>");
         return sb.toString();
     }
 
@@ -247,6 +261,8 @@ public class TelegramBotService {
             requestBody.put("chat_id", channelId);
             requestBody.put("photo", photoUrl);
             requestBody.put("caption", caption);
+            requestBody.put("parse_mode", "HTML");
+            requestBody.put("disable_web_page_preview", true);
             
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -281,6 +297,8 @@ public class TelegramBotService {
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("chat_id", channelId);
             requestBody.put("media", media);
+            requestBody.put("parse_mode", "HTML");
+            requestBody.put("disable_web_page_preview", true);
             
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -300,6 +318,8 @@ public class TelegramBotService {
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("chat_id", channelId);
             requestBody.put("text", text);
+            requestBody.put("parse_mode", "HTML");
+            requestBody.put("disable_web_page_preview", true);
             
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -309,6 +329,25 @@ public class TelegramBotService {
             log.info("Published text to channel");
         } catch (Exception e) {
             log.error("Failed to publish text to channel", e);
+        }
+    }
+
+    public void sendNotificationToUser(Long telegramId, String message) {
+        try {
+            String apiUrl = TELEGRAM_API_URL + botToken + "/sendMessage";
+            
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("chat_id", telegramId);
+            requestBody.put("text", message);
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            
+            restTemplate.postForEntity(apiUrl, request, Map.class);
+            log.info("Sent notification to user {}", telegramId);
+        } catch (Exception e) {
+            log.error("Failed to send notification to user {}", telegramId, e);
         }
     }
 }

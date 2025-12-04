@@ -1,5 +1,6 @@
 package com.irkdoska.irkdoska.controller;
 
+import com.irkdoska.irkdoska.entity.RejectRequest;
 import com.irkdoska.irkdoska.model.ModerationStatus;
 import com.irkdoska.irkdoska.security.TmaUserPrincipal;
 import com.irkdoska.irkdoska.service.AdService;
@@ -53,12 +54,27 @@ public class ModerationController {
     @PostMapping("/bot/{adId}/reject")
     public ResponseEntity<Void> rejectAdFromBot(
             @PathVariable Long adId,
-            @RequestParam Long telegramId) {
+            @RequestParam Long telegramId,
+            @RequestBody(required = false) RejectRequest rejectRequest) {
         if (!isAdmin(telegramId)) {
             return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).build();
         }
         log.info("Admin {} rejecting ad {} from bot", telegramId, adId);
-        adService.moderateAd(adId, ModerationStatus.REJECTED);
+        String reason = rejectRequest != null ? rejectRequest.getReason() : null;
+        adService.moderateAd(adId, ModerationStatus.REJECTED, reason);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/bot/{adId}/commercial")
+    public ResponseEntity<Void> rejectAsCommercial(
+            @PathVariable Long adId,
+            @RequestParam Long telegramId) {
+        if (!isAdmin(telegramId)) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).build();
+        }
+        log.info("Admin {} marking ad {} as commercial from bot", telegramId, adId);
+        String commercialReason = "Это комерческое объявление, воспользуйтесь платным размещением!";
+        adService.moderateAd(adId, ModerationStatus.REJECTED, commercialReason);
         return ResponseEntity.ok().build();
     }
 

@@ -121,6 +121,26 @@ body {
     width: 60px;
 }
 
+body.payment-active {
+    overflow: hidden !important;
+    height: 100vh !important;
+}
+
+body.payment-active #root {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    z-index: -9999 !important;
+}
+
+body.payment-active .container {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
 @media (max-width: 640px) {
     body {
         padding: var(--spacing-md);
