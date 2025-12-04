@@ -30,7 +30,7 @@ public class TelegramBotService {
     @Value("${CHANNEL_ID}")
     private String channelId;
 
-    private static final Set<Long> ADMIN_IDS = Set.of(718802381L, 7978201047L);
+    private static final Set<Long> ADMIN_IDS = Set.of(718802381L, 7724264827L, 1899914568L);
     private static final String TELEGRAM_API_URL = "https://api.telegram.org/bot";
 
     public void sendAdForModeration(Ad ad) {

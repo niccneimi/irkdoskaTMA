@@ -79,7 +79,6 @@ public class ModerationController {
     }
 
     private boolean isAdmin(Long telegramId) {
-        return telegramId != null && (telegramId == 718802381L || telegramId == 7978201047L);
+        return telegramId != null && (telegramId == 718802381L || telegramId == 7724264827L || telegramId == 1899914568L);
     }
 }
-

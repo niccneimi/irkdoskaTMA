@@ -26,7 +26,7 @@ import com.irkdoska.irkdoska.exception.ExpiredTmaException;
 public class TmaCore {
 
     private static final Logger logger = LoggerFactory.getLogger(TmaCore.class);
-    private static final Set<Long> ADMIN_IDS = Set.of(718802381L, 7978201047L);
+    private static final Set<Long> ADMIN_IDS = Set.of(718802381L, 7724264827L, 1899914568L);
 
     public static class HmacSha256 {
         public static byte[] hmacSha256(String data, String key) throws Exception {

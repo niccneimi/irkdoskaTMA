@@ -3,7 +3,7 @@ version: "3.8"
 services:
   tuna:
     image: yuccastream/tuna:latest
-    command: http 8081 --subdomain=irkdoskatmatest
+    command: http 8081 --subdomain=irkdoska
     restart: always
     network_mode: "host"
     env_file:
