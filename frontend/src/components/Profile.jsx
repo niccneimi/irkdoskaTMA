@@ -183,7 +183,7 @@ function Profile() {
                     alert('❌ Ошибка при оплате. Попробуйте еще раз.');
                 } else if (status === 'cancelled' || status === 'pending') {
                     restoreViewport();
-                }
+            }
             });
         } catch (e) {
             const html = document.documentElement;

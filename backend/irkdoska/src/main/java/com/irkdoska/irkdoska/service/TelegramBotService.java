@@ -289,6 +289,7 @@ public class TelegramBotService {
                 
                 if (i == photoPaths.size() - 1) {
                     photoItem.put("caption", caption);
+                    photoItem.put("parse_mode", "HTML");
                 }
                 
                 media.add(photoItem);
@@ -297,7 +298,6 @@ public class TelegramBotService {
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("chat_id", channelId);
             requestBody.put("media", media);
-            requestBody.put("parse_mode", "HTML");
             requestBody.put("disable_web_page_preview", true);
             
             HttpHeaders headers = new HttpHeaders();
