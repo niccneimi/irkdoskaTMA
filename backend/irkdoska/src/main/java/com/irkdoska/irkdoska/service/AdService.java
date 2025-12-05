@@ -34,7 +34,7 @@ public class AdService {
             throw new IllegalArgumentException("Null argument");
         }
 
-        if (description.length() > 200) {
+        if (description.length() > 1000) {
             throw new IllegalArgumentException("Too low argument");
         }
 
