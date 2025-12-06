@@ -31,7 +31,7 @@ public class Ad {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "description", nullable = false)
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "price", nullable = false)
@@ -55,7 +55,7 @@ public class Ad {
     @Column(name = "is_paid", nullable = false)
     private Boolean isPaid = false;
 
-    @Column(name = "rejection_reason", length = 500)
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
     private String rejectionReason;
 
     @CreationTimestamp
