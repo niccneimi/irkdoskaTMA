@@ -55,7 +55,6 @@ function PhotoGallery({ maxPhotos = 5, onChange, resetToken }) {
                         type="file"
                         accept="image/*"
                         multiple
-                        capture="environment"
                         onChange={handleFileSelect}
                     />
                     <div className="photo-upload-icon">📷</div>
