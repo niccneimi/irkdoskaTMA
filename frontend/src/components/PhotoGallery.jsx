@@ -6,8 +6,13 @@ function PhotoGallery({ maxPhotos = 5, onChange, resetToken }) {
 
     const handleFileSelect = (e) => {
         const files = Array.from(e.target.files);
+        
+        const imageFiles = files.filter(file => {
+            return file.type.startsWith('image/');
+        });
+        
         const remainingSlots = maxPhotos - photos.length;
-        const filesToAdd = files.slice(0, remainingSlots);
+        const filesToAdd = imageFiles.slice(0, remainingSlots);
 
         const readers = filesToAdd.map(file => {
             return new Promise((resolve) => {
@@ -53,7 +58,6 @@ function PhotoGallery({ maxPhotos = 5, onChange, resetToken }) {
                 <div className="photo-upload-button">
                     <input
                         type="file"
-                        accept="image/*"
                         multiple
                         onChange={handleFileSelect}
                     />

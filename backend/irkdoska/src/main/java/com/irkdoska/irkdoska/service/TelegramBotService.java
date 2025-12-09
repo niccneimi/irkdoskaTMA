@@ -54,7 +54,7 @@ public class TelegramBotService {
             sb.append("💰 ПЛАТНОЕ ОБЪЯВЛЕНИЕ\n\n");
         }
         sb.append(ad.getDescription()).append("\n\n");
-        sb.append("💵 Цена: ").append(ad.getPrice()).append("₽\n");
+        sb.append("💵 Цена: ").append(formatPrice(ad.getPrice())).append("₽\n");
         sb.append("🏙 Город: ").append(ad.getCity()).append("\n");
         String phone = ad.getPhone() != null ? ad.getPhone().replaceAll("\\s+", "") : "";
         sb.append("📞 Номер: ").append(phone);
@@ -210,6 +210,16 @@ public class TelegramBotService {
         }
     }
 
+    private String formatPrice(Double price) {
+        if (price == null) {
+            return "0";
+        }
+        if (price % 1 == 0) {
+            return String.valueOf(price.intValue());
+        }
+        return String.valueOf(price);
+    }
+
     private String buildPhotoUrl(String photoPath) {
         return "https://" + domainName + "/api/photos?path=" + 
                java.net.URLEncoder.encode(photoPath, java.nio.charset.StandardCharsets.UTF_8);
@@ -234,7 +244,7 @@ public class TelegramBotService {
     private String formatAdTextForChannel(Ad ad) {
         StringBuilder sb = new StringBuilder();
         sb.append(ad.getDescription()).append("\n\n");
-        sb.append("💵 Цена: ").append(ad.getPrice()).append("₽\n");
+        sb.append("💵 Цена: ").append(formatPrice(ad.getPrice())).append("₽\n");
         sb.append("🏙 Город: ").append(ad.getCity()).append("\n");
         String phone = ad.getPhone() != null ? ad.getPhone().replaceAll("\\s+", "") : "";
         sb.append("📞 Номер: ").append(phone);
