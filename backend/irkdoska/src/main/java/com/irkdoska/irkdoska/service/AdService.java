@@ -54,6 +54,10 @@ public class AdService {
             userRepository.save(user);
         }
         
+        if (photos != null && photos.length > 10) {
+            throw new IllegalArgumentException("Максимальное количество фото: 10");
+        }
+
         String normalizedPhone = normalizePhone(phone);
         Ad ad = new Ad(description, price, city, normalizedPhone, user, isPaid != null ? isPaid : false);
         adRepository.save(ad);

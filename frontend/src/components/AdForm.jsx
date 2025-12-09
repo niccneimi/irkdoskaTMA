@@ -203,7 +203,7 @@ function AdForm({ isPaid = false }) {
                     )}
                 </div>
             )}
-            <PhotoGallery maxPhotos={5} onChange={setPhotos} resetToken={resetPhotosToken} />
+            <PhotoGallery maxPhotos={10} onChange={setPhotos} resetToken={resetPhotosToken} />
 
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
