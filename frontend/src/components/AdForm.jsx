@@ -78,10 +78,17 @@ function AdForm({ isPaid = false }) {
         const { name, value } = e.target;
         
         if (name === 'phone') {
-            setFormData(prev => ({
-                ...prev,
-                [name]: formatPhone(value)
-            }));
+            if (value.trim().startsWith('@')) {
+                setFormData(prev => ({
+                    ...prev,
+                    [name]: value.trim()
+                }));
+            } else {
+                setFormData(prev => ({
+                    ...prev,
+                    [name]: formatPhone(value)
+                }));
+            }
         } else {
             setFormData(prev => ({
                 ...prev,
@@ -239,14 +246,14 @@ function AdForm({ isPaid = false }) {
 
                 <div className="form-group">
                     <label className="form-label" htmlFor="phone">
-                        Номер телефона для связи
+                        Номер телефона или Telegram (@username)
                     </label>
                     <input
-                        type="tel"
+                        type="text"
                         className="form-input"
                         id="phone"
                         name="phone"
-                        placeholder="+7 (___) ___-__-__"
+                        placeholder="+7 (___) ___-__-__ или @username"
                         value={formData.phone}
                         onChange={handleInputChange}
                         required

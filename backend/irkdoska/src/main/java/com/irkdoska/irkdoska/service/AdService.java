@@ -38,8 +38,8 @@ public class AdService {
             throw new IllegalArgumentException("Too low argument");
         }
 
-        if (!isPhoneValid(phone)) {
-            throw new IllegalArgumentException("Invalid phone number");
+        if (!isPhoneOrUsernameValid(phone)) {
+            throw new IllegalArgumentException("Invalid phone number or username");
         }
 
         User user = userRepository.findByTelegramId(telegramId).orElseThrow(() -> {
@@ -58,8 +58,8 @@ public class AdService {
             throw new IllegalArgumentException("Максимальное количество фото: 10");
         }
 
-        String normalizedPhone = normalizePhone(phone);
-        Ad ad = new Ad(description, price, city, normalizedPhone, user, isPaid != null ? isPaid : false);
+        String normalizedContact = normalizePhoneOrUsername(phone);
+        Ad ad = new Ad(description, price, city, normalizedContact, user, isPaid != null ? isPaid : false);
         adRepository.save(ad);
         
         if (photos != null && photos.length > 0) {
@@ -97,8 +97,17 @@ public class AdService {
         }
     }
 
-    private boolean isPhoneValid(String phone) {
-        String digits = phone.replaceAll("\\D", "");
+    private boolean isPhoneOrUsernameValid(String contact) {
+        if (contact == null || contact.trim().isEmpty()) {
+            return false;
+        }
+        
+        if (contact.trim().startsWith("@")) {
+            String username = contact.trim().substring(1);
+            return username.matches("^[a-zA-Z0-9_]{5,32}$");
+        }
+        
+        String digits = contact.replaceAll("\\D", "");
         if (digits.length() == 0) return false;
         if (digits.charAt(0) == '7' || digits.charAt(0) == '8') {
             digits = "7" + digits.substring(1);
@@ -111,10 +120,14 @@ public class AdService {
         return digits.length() == 11 && digits.startsWith("7");
     }
 
-    private String normalizePhone(String phone) {
-        if (phone == null) {
+    private String normalizePhoneOrUsername(String contact) {
+        if (contact == null) {
             return null;
         }
-        return phone.replaceAll("\\s+", "");
+
+        if (contact.trim().startsWith("@")) {
+            return contact.trim();
+        }
+        return contact.replaceAll("\\s+", "");
     }
 }

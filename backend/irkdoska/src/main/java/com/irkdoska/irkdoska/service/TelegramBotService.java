@@ -56,8 +56,9 @@ public class TelegramBotService {
         sb.append(ad.getDescription()).append("\n\n");
         sb.append("💵 Цена: ").append(formatPrice(ad.getPrice())).append("₽\n");
         sb.append("🏙 Город: ").append(ad.getCity()).append("\n");
-        String phone = ad.getPhone() != null ? ad.getPhone().replaceAll("\\s+", "") : "";
-        sb.append("📞 Номер: ").append(phone);
+        String contact = ad.getPhone() != null ? ad.getPhone().trim() : "";
+        String contactLabel = contact.startsWith("@") ? "📱 Telegram" : "📞 Номер";
+        sb.append(contactLabel).append(": ").append(contact);
         return sb.toString();
     }
 
@@ -214,10 +215,39 @@ public class TelegramBotService {
         if (price == null) {
             return "0";
         }
+        
         if (price % 1 == 0) {
-            return String.valueOf(price.intValue());
+            int intPrice = price.intValue();
+            if (intPrice >= 10000) {
+                return formatNumberWithSpaces(intPrice);
+            }
+            return String.valueOf(intPrice);
         }
-        return String.valueOf(price);
+        
+        String priceStr = String.valueOf(price);
+        int dotIndex = priceStr.indexOf('.');
+        if (dotIndex > 0) {
+            int intPart = Integer.parseInt(priceStr.substring(0, dotIndex));
+            if (intPart >= 10000) {
+                return formatNumberWithSpaces(intPart) + priceStr.substring(dotIndex);
+            }
+        }
+        return priceStr;
+    }
+    
+    private String formatNumberWithSpaces(int number) {
+        String str = String.valueOf(number);
+        StringBuilder result = new StringBuilder();
+        int length = str.length();
+        
+        for (int i = 0; i < length; i++) {
+            if (i > 0 && (length - i) % 3 == 0) {
+                result.append(' ');
+            }
+            result.append(str.charAt(i));
+        }
+        
+        return result.toString();
     }
 
     private String buildPhotoUrl(String photoPath) {
@@ -246,8 +276,9 @@ public class TelegramBotService {
         sb.append(ad.getDescription()).append("\n\n");
         sb.append("💵 Цена: ").append(formatPrice(ad.getPrice())).append("₽\n");
         sb.append("🏙 Город: ").append(ad.getCity()).append("\n");
-        String phone = ad.getPhone() != null ? ad.getPhone().replaceAll("\\s+", "") : "";
-        sb.append("📞 Номер: ").append(phone);
+        String contact = ad.getPhone() != null ? ad.getPhone().trim() : "";
+        String contactLabel = contact.startsWith("@") ? "📱 Telegram" : "📞 Номер";
+        sb.append(contactLabel).append(": ").append(contact);
         sb.append("\n\n");
         sb.append("🌆 <a href=\"https://t.me/+7L49gd6yCMZjYjEy\">Кладовая 38</a> 🛍️ | <a href=\"https://t.me/irkdoska_bot\">Подать объявление</a>");
         return sb.toString();
