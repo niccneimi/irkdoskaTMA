@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MultipartException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +29,23 @@ public class GlobalExceptionHandler {
         }
         
         return ResponseEntity.status(status).body(response);
+    }
+
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<Map<String, Object>> handleMultipartException(MultipartException e) {
+        log.error("MultipartException: {}", e.getMessage(), e);
+        
+        Map<String, Object> response = new HashMap<>();
+        String message = "Размер файлов слишком большой. Максимальный размер одного файла: 20MB, общий размер запроса: 200MB";
+        
+        if (e.getMessage() != null && e.getMessage().contains("exceeded")) {
+            message = "Превышен максимальный размер файлов. Максимальный размер одного файла: 20MB, общий размер всех файлов: 200MB";
+        }
+        
+        response.put("error", message);
+        response.put("message", message);
+        
+        return ResponseEntity.status(413).body(response);
     }
 
     @ExceptionHandler(Exception.class)
