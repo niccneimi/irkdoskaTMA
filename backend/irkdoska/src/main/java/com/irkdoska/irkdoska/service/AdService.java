@@ -34,7 +34,7 @@ public class AdService {
             throw new IllegalArgumentException("Null argument");
         }
 
-        if (description.length() > 1000) {
+        if (city.length() > 50 || description.length() > 700 || phone.length() > 50 || price.toString().length() > 10) {
             throw new IllegalArgumentException("Too low argument");
         }
 

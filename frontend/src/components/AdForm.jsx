@@ -174,6 +174,16 @@ function AdForm({ isPaid = false }) {
             return;
         }
 
+        if (formData.description.length > 700) {
+            showError('Описание слишком длинное. Максимальная длина: 700 символов.');
+            return;
+        }
+
+        if (formData.city.length > 50) {
+            showError('Название города слишком длинное. Максимальная длина: 50 символов.');
+            return;
+        }
+
         if (isPaid) {
             if (balance === null) {
                 showError('Загрузка баланса... Пожалуйста, подождите.');
@@ -224,8 +234,12 @@ function AdForm({ isPaid = false }) {
                         placeholder="Опишите ваше объявление..."
                         value={formData.description}
                         onChange={handleInputChange}
+                        maxLength={700}
                         required
                     />
+                    <div className={`char-counter ${formData.description.length > 650 ? 'char-counter-warning' : ''} ${formData.description.length >= 700 ? 'char-counter-error' : ''}`}>
+                        {formData.description.length} / 700 символов
+                    </div>
                 </div>
 
                 <div className="form-group">
@@ -240,8 +254,12 @@ function AdForm({ isPaid = false }) {
                         placeholder="Например: Иркутск"
                         value={formData.city}
                         onChange={handleInputChange}
+                        maxLength={50}
                         required
                     />
+                    <div className={`char-counter ${formData.city.length > 45 ? 'char-counter-warning' : ''} ${formData.city.length >= 50 ? 'char-counter-error' : ''}`}>
+                        {formData.city.length} / 50 символов
+                    </div>
                 </div>
 
                 <div className="form-group">
