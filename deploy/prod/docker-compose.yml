@@ -15,6 +15,7 @@ services:
     build:
       context: ../../
       dockerfile: deploy/Dockerfile.frontend
+    restart: always
     ports:
       - "8081:80"
     depends_on:
@@ -23,6 +24,7 @@ services:
     build:
       context: ../../
       dockerfile: deploy/Dockerfile.backend
+    restart: always
     env_file:
       - .env.bot
     environment:
@@ -31,10 +33,17 @@ services:
     depends_on:
       - db
       - minio
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/api/shop/packages || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
   bot:
     build:
       context: ../../
       dockerfile: deploy/Dockerfile.bot
+    restart: always
     env_file:
       - .env.bot
     depends_on:
